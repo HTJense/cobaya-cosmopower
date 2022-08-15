@@ -34,6 +34,8 @@ class CosmoPower(BoltzmannBase):
         self.cp_te_nn = cp.cosmopower_PCAplusNN(restore = True, restore_filename = os.path.join(self.network_path, self.cmb_te_pcaplusnn_filename))
         self.cp_ee_nn = cp.cosmopower_NN(restore = True, restore_filename = os.path.join(self.network_path, self.cmb_ee_nn_filename))
         
+        self.lmax_theory = self.extra_args.get("lmax_theory", 2508)
+        
         self.log.info(f"Loaded CosmoPower from directory {self.network_path}")
     
     def calculate(self, state, want_derived = True, **params):
@@ -55,8 +57,10 @@ class CosmoPower(BoltzmannBase):
     def get_Cl(self, ell_factor = True, units = "FIRASmuK2"):
         cls_old = self.current_state.copy()
         
-        cls = { }
-        ls = np.arange(cls_old["tt"].shape[0])
+        cls = { k : np.zeros((self.lmax_theory,)) for k in [ "tt", "te", "ee" ] }
+        cls["ell"] = np.arange(self.lmax_theory)
+        
+        ls = 2 + np.arange(cls_old["tt"].shape[0])
         
         cmb_fac = self._cmb_unit_factor(units, 2.726)
         
@@ -66,9 +70,7 @@ class CosmoPower(BoltzmannBase):
             ls_fac = 1.0
         
         for k in [ "tt", "te", "ee" ]:
-            cls[k] = cls_old[k] * ls_fac * cmb_fac ** 2.0
-        
-        cls["ell"] = ls
+            cls[k][ls] = cls_old[k] * ls_fac * cmb_fac ** 2.0
         
         return cls
     

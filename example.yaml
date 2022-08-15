@@ -13,7 +13,7 @@ likelihood:
   [ YOUR LIKELIHOOD HERE ]
 
 params:
-    # Cosmology
+  # Cosmology
   ombh2:
     prior:
       min: 0.017
